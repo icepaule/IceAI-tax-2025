@@ -1,0 +1,17 @@
+providers:
+  - name: Vodafone
+    mode: portal-auto
+    status: in_progress
+    details: "MeinVodafone Rechnungsportal via Selenium/noVNC"
+  - name: Hetzner
+    mode: mail+portal-manual
+    status: pending
+    details: "Rechnungen bevorzugt per IMAP filtern; Portal-Fetch als naechster Connector"
+  - name: Tibber
+    mode: mail+api
+    status: pending
+    details: "Mailbelege per IMAP; API-Connector optional fuer Jahreswerte"
+  - name: goldgas.de
+    mode: mail+portal-manual
+    status: pending
+    details: "Vertrag 21716206; IMAP-Filter aktiv, Portalabruf als naechster Schritt"

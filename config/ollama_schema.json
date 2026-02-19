@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "properties": {
+    "document_type": {"type": "string"},
+    "merchant": {"type": "string"},
+    "invoice_number": {"type": "string"},
+    "invoice_date": {"type": "string", "description": "ISO date YYYY-MM-DD when possible"},
+    "currency": {"type": "string"},
+    "gross_amount": {"type": "number"},
+    "net_amount": {"type": "number"},
+    "vat_amount": {"type": "number"},
+    "line_items_summary": {"type": "string"},
+    "tax_relevance_hint": {"type": "string"},
+    "confidence": {"type": "number"},
+    "review_required": {"type": "boolean"}
+  },
+  "required": [
+    "document_type",
+    "merchant",
+    "invoice_date",
+    "currency",
+    "gross_amount",
+    "confidence",
+    "review_required"
+  ]
+}

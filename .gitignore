@@ -1,0 +1,36 @@
+# ---- Umgebung & Secrets ----
+.env
+*.pem
+*.key
+
+# ---- Python ----
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# ---- Nutzerdaten (NIEMALS committen!) ----
+data/
+/srv/taxdrop/
+
+# ---- IMAP-Konfigurationen mit echten Zugangsdaten ----
+config/imap_accounts.yml
+config/imap_accounts_gmail.yml
+config/imap_accounts_proton.yml
+config/imap_info_only.yml
+
+# ---- Docker Volumes & Build ----
+docker-compose.override.yml
+
+# ---- IDE ----
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ---- OS ----
+.DS_Store
+Thumbs.db

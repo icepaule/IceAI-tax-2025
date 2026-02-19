@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IceAI Tax 2025 - KI-gestuetzte Steuerbeleg-Pipeline</title>
+  <style>
+    :root {
+      --primary: #1a56db;
+      --primary-light: #e8effc;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #059669;
+      --accent-light: #ecfdf5;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #1e3a5f 0%, #1a56db 100%);
+      color: white;
+      padding: 60px 0 50px;
+    }
+    header h1 { font-size: 2.5rem; margin-bottom: 12px; }
+    header p { font-size: 1.15rem; opacity: 0.9; max-width: 700px; }
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      margin-top: 16px;
+    }
+
+    /* Nav */
+    nav {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    nav .container { display: flex; gap: 0; overflow-x: auto; }
+    nav a {
+      padding: 14px 20px;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    nav a:hover, nav a.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    /* Sections */
+    section { padding: 50px 0; }
+    section:nth-child(even) { background: var(--card); }
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 24px;
+      color: var(--text);
+    }
+    h3 { font-size: 1.2rem; margin: 20px 0 12px; color: var(--text); }
+
+    /* Cards */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    section:nth-child(even) .card { background: var(--bg); }
+    .card h3 { margin-top: 0; color: var(--primary); }
+    .card p { color: var(--text-muted); font-size: 0.95rem; }
+
+    /* Flow diagram */
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 30px 0;
+    }
+    .flow-step {
+      background: var(--primary-light);
+      border: 2px solid var(--primary);
+      border-radius: 10px;
+      padding: 16px 20px;
+      text-align: center;
+      min-width: 160px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .flow-arrow {
+      font-size: 1.5rem;
+      color: var(--primary);
+      font-weight: bold;
+    }
+    @media (max-width: 768px) {
+      .flow { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+    tr:hover td { background: #f8fafc; }
+
+    /* Screenshots */
+    .screenshot {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin: 20px 0;
+    }
+    .screenshot img { width: 100%; display: block; }
+    .screenshot-caption {
+      background: var(--bg);
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Code */
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin: 16px 0;
+    }
+    code {
+      background: var(--primary-light);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    pre code { background: none; padding: 0; }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .stat {
+      text-align: center;
+      padding: 20px;
+      background: var(--card);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    section:nth-child(even) .stat { background: var(--bg); }
+    .stat-number { font-size: 2rem; font-weight: 700; color: var(--primary); }
+    .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* Category badges */
+    .cat-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin: 2px;
+    }
+    .cat-werbung { background: #dbeafe; color: #1e40af; }
+    .cat-sonder { background: #fce7f3; color: #9d174d; }
+    .cat-haushalt { background: var(--accent-light); color: #065f46; }
+    .cat-pruefung { background: var(--warning-light); color: #92400e; }
+
+    /* Footer */
+    footer {
+      background: #1e293b;
+      color: #94a3b8;
+      padding: 40px 0;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+    footer a { color: #60a5fa; text-decoration: none; }
+
+    /* Tech stack logos */
+    .tech-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin: 24px 0;
+    }
+    .tech-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    section:nth-child(even) .tech-item { background: var(--bg); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>IceAI Tax 2025</h1>
+    <p>KI-gestuetzte Steuerbeleg-Pipeline fuer die private Einkommenssteuererklaerung 2025.
+       Automatische Erfassung, OCR, Klassifizierung und Archivierung mit lokaler KI.</p>
+    <span class="badge">Docker + Ollama + Paperless-NGX + Steuerbox</span>
+  </div>
+</header>
+
+<nav>
+  <div class="container">
+    <a href="#ueberblick" class="active">Ueberblick</a>
+    <a href="#datenfluss">Datenfluss</a>
+    <a href="#komponenten">Komponenten</a>
+    <a href="#screenshots">Screenshots</a>
+    <a href="#klassifizierung">Klassifizierung</a>
+    <a href="#techstack">Tech Stack</a>
+    <a href="#quickstart">Schnellstart</a>
+  </div>
+</nav>
+
+<!-- Ueberblick -->
+<section id="ueberblick">
+  <div class="container">
+    <h2>Was macht IceAI Tax?</h2>
+    <p>IceAI Tax 2025 automatisiert den kompletten Workflow von der Belegerfassung bis zur
+       fertigen Einkommenssteuererklaerung. Der selbst-gehostete Docker-Stack laeuft vollstaendig
+       lokal &ndash; keine Daten verlassen das Netzwerk.</p>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-number">10</div>
+        <div class="stat-label">Docker Container</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">5</div>
+        <div class="stat-label">Datenquellen</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">24</div>
+        <div class="stat-label">Python-Module</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">100%</div>
+        <div class="stat-label">Lokal / Self-Hosted</div>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3>Automatische Erfassung</h3>
+        <p>Belege aus E-Mail (IMAP), Webportalen (Amazon, eBay, Vodafone),
+           Outlook-Archiven (PST) und manueller Ablage (SMB).</p>
+      </div>
+      <div class="card">
+        <h3>Lokale KI-Extraktion</h3>
+        <p>OCR via Tesseract, strukturierte Datenextraktion via Ollama (Qwen 2.5).
+           Haendler, Betraege, MwSt &ndash; vollautomatisch.</p>
+      </div>
+      <div class="card">
+        <h3>Steuer-Klassifizierung</h3>
+        <p>Regelbasierte Zuordnung zu Werbungskosten, Sonderausgaben,
+           Haushaltsnahen Leistungen &ndash; mit Haendler-Overrides.</p>
+      </div>
+      <div class="card">
+        <h3>Export &amp; Archivierung</h3>
+        <p>CSV-Export, automatischer Upload an Buhl Steuerbox (WISO Steuer),
+           Archivierung in Paperless-NGX und ecoDMS.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Datenfluss -->
+<section id="datenfluss">
+  <div class="container">
+    <h2>Datenfluss: Vom Beleg zur Steuererklaerung</h2>
+
+    <div class="flow">
+      <div class="flow-step">E-Mail / Portal<br><small>IMAP, Amazon, eBay</small></div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-step">Pipeline Inbox<br><small>/data/inbox/</small></div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-step">OCR<br><small>Tesseract + Poppler</small></div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-step">LLM Extraktion<br><small>Ollama / Qwen 2.5</small></div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-step">Klassifizierung<br><small>taxonomy.yml</small></div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-step">Export<br><small>CSV + Steuerbox</small></div>
+    </div>
+
+    <h3>Phase 1: Belegerfassung</h3>
+    <table>
+      <tr><th>Quelle</th><th>Methode</th><th>Details</th></tr>
+      <tr><td>E-Mail (IMAP)</td><td>Automatisch</td><td>Gmail, iCloud, ProtonMail, lokaler Mailserver. Regex-Filter fuer Rechnungsbegriffe.</td></tr>
+      <tr><td>Amazon</td><td>Selenium Portal</td><td>Bestellhistorie durchlaufen, Rechnungs-PDFs herunterladen. Cookie-Persistenz.</td></tr>
+      <tr><td>eBay</td><td>Selenium Portal</td><td>Kaufuebersicht scrapen. Fallback-Screenshots wenn kein PDF verfuegbar.</td></tr>
+      <tr><td>Vodafone</td><td>API + Portal</td><td>MeinVodafone REST-API fuer Rechnungs-PDFs. Interaktiver Login via noVNC.</td></tr>
+      <tr><td>Outlook PST</td><td>readpst</td><td>Outlook-Archive (PST/EML) parsen, steuerrelevante Anhaenge extrahieren.</td></tr>
+      <tr><td>Manuelle Ablage</td><td>SMB Share</td><td>/srv/taxdrop &ndash; fuer Handscanner, manuelle Downloads etc.</td></tr>
+    </table>
+
+    <h3>Phase 2: OCR &amp; Text-Extraktion</h3>
+    <p>PDFs werden nativ via <code>pdftotext</code> extrahiert. Gescannte PDFs und Bilder
+       durchlaufen Tesseract OCR (Deutsch + Englisch). Max. 5 Seiten pro PDF.</p>
+
+    <h3>Phase 3: KI-Extraktion</h3>
+    <p>Das lokale LLM (Qwen 2.5 auf Ollama) extrahiert strukturierte Daten mit JSON-Schema-Enforcement:</p>
+    <pre><code>{
+  "document_type": "invoice",
+  "merchant": "Amazon EU S.a.r.L.",
+  "invoice_number": "206-1234567-8901234",
+  "invoice_date": "2025-01-15",
+  "gross_amount": 99.99,
+  "vat_amount": 15.97,
+  "confidence": 0.95,
+  "review_required": false
+}</code></pre>
+
+    <h3>Phase 4: Klassifizierung &amp; Deduplizierung</h3>
+    <p>Zweistufige Klassifizierung: Haendler-Override &rarr; Keyword-Match &rarr; Fallback.
+       Deduplizierung per SHA256-Hash und semantischem Fingerprint
+       (Haendler + Datum + Rechnungsnummer + Betrag).</p>
+
+    <h3>Phase 5: Export</h3>
+    <p>CSV-Export fuer manuellen Import, automatischer SMTP-Upload an Buhl Steuerbox
+       (WISO Steuer), Archivierung in Paperless-NGX mit hierarchischen Tags.</p>
+  </div>
+</section>
+
+<!-- Komponenten -->
+<section id="komponenten">
+  <div class="container">
+    <h2>Docker-Architektur (10 Container)</h2>
+
+    <table>
+      <tr><th>Service</th><th>Image</th><th>Funktion</th><th>Port</th></tr>
+      <tr><td><strong>paperless</strong></td><td>paperless-ngx:latest</td><td>Dokumentenmanagement &amp; Volltextsuche</td><td>8010</td></tr>
+      <tr><td><strong>db</strong></td><td>postgres:16</td><td>Paperless-Datenbank</td><td>&ndash;</td></tr>
+      <tr><td><strong>redis</strong></td><td>redis:7</td><td>Paperless-Cache &amp; Queue</td><td>&ndash;</td></tr>
+      <tr><td><strong>gotenberg</strong></td><td>gotenberg:8.11</td><td>PDF-Konvertierung</td><td>&ndash;</td></tr>
+      <tr><td><strong>tika</strong></td><td>apache/tika:3.2.1</td><td>Dokumenten-Parsing</td><td>&ndash;</td></tr>
+      <tr><td><strong>tax-pipeline</strong></td><td>python:3.13 + OCR</td><td>Haupt-Pipeline (OCR, Klassifizierung, Export)</td><td>&ndash;</td></tr>
+      <tr><td><strong>status-web</strong></td><td>python:3.13</td><td>Web-Dashboard &amp; Review-UI</td><td>8787</td></tr>
+      <tr><td><strong>portal-fetcher</strong></td><td>python:3.13 + Selenium</td><td>Portal-Automatisierung</td><td>&ndash;</td></tr>
+      <tr><td><strong>portal-browser</strong></td><td>selenium/chromium</td><td>Headless Browser + noVNC</td><td>7900</td></tr>
+      <tr><td><strong>proton-bridge</strong></td><td>protonmail-bridge</td><td>ProtonMail IMAP-Bridge</td><td>1143</td></tr>
+    </table>
+
+    <h3>Python-Module</h3>
+    <div class="card-grid">
+      <div class="card">
+        <h3>main.py</h3>
+        <p>Pipeline-Orchestrator: Koordiniert Sammeln, OCR, LLM-Extraktion, Deduplizierung und Export.</p>
+      </div>
+      <div class="card">
+        <h3>ollama_client.py</h3>
+        <p>LLM-Integration: Sendet OCR-Text an Ollama, empfaengt JSON mit Haendler, Betrag, MwSt.</p>
+      </div>
+      <div class="card">
+        <h3>classifier.py</h3>
+        <p>Steuerkategorie-Zuordnung: Laedt taxonomy.yml, wendet Haendler-Overrides und Keyword-Match an.</p>
+      </div>
+      <div class="card">
+        <h3>imap_collector.py</h3>
+        <p>Multi-Account IMAP-Sammler: Filtert Mails per Regex, extrahiert Anhaenge, Body-Fallback.</p>
+      </div>
+      <div class="card">
+        <h3>portal_fetcher.py</h3>
+        <p>Selenium WebDriver: Automatisiert Amazon/eBay/Vodafone-Logins und Rechnungsdownloads.</p>
+      </div>
+      <div class="card">
+        <h3>steuerbox_uploader.py</h3>
+        <p>SMTP-basierter Upload: Sendet Belege per E-Mail an Buhl Steuerbox fuer WISO Steuer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Screenshots -->
+<section id="screenshots">
+  <div class="container">
+    <h2>Screenshots</h2>
+
+    <h3>Status Dashboard (Port 8787)</h3>
+    <div class="screenshot">
+      <img src="assets/screenshots/01-status-dashboard.png" alt="Tax AI Status Dashboard">
+      <div class="screenshot-caption">
+        Status Dashboard: Uebersicht ueber verarbeitete Belege, Fehler, Duplikate,
+        Pflichtanbieter-Status und Exporte. Inkl. Review-UI fuer manuelle Korrekturen.
+      </div>
+    </div>
+
+    <h3>Paperless-NGX (Port 8010)</h3>
+    <div class="screenshot">
+      <img src="assets/screenshots/02-paperless-login.png" alt="Paperless-NGX Login">
+      <div class="screenshot-caption">
+        Paperless-NGX: Dokumentenmanagement mit Volltextsuche, hierarchischen Tags
+        nach Steuerkategorie und Dokumentenvorschau.
+      </div>
+    </div>
+
+    <h3>Selenium noVNC (Port 7900)</h3>
+    <div class="screenshot">
+      <img src="assets/screenshots/03-selenium-novnc.png" alt="Selenium noVNC Browser">
+      <div class="screenshot-caption">
+        noVNC Remote-Browser: Interaktiver Zugriff fuer Portal-Logins mit 2FA/Captcha.
+        Wird fuer Amazon, eBay und Vodafone Login-Sessions verwendet.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Klassifizierung -->
+<section id="klassifizierung">
+  <div class="container">
+    <h2>Steuer-Klassifizierung</h2>
+    <p>Die Taxonomie definiert die Zuordnung von Belegen zu Steuerkategorien
+       fuer die Einkommenssteuererklaerung:</p>
+
+    <table>
+      <tr>
+        <th>Kategorie</th>
+        <th>Keywords</th>
+        <th>Steuer-Hinweis</th>
+      </tr>
+      <tr>
+        <td><span class="cat-badge cat-werbung">Arbeitsmittel</span></td>
+        <td>Monitor, Tastatur, Drucker, Laptop, Headset, Notebook</td>
+        <td>Werbungskosten &gt; Arbeitsmittel</td>
+      </tr>
+      <tr>
+        <td><span class="cat-badge cat-werbung">Fahrtkosten</span></td>
+        <td>Bahn, Ticket, Fahrkarte, Tank, Parken, Sprit</td>
+        <td>Werbungskosten &gt; Fahrtkosten</td>
+      </tr>
+      <tr>
+        <td><span class="cat-badge cat-sonder">Spenden</span></td>
+        <td>Spende, Charity, Zuwendungsbestaetigung</td>
+        <td>Sonderausgaben &gt; Spenden</td>
+      </tr>
+      <tr>
+        <td><span class="cat-badge cat-haushalt">Haushaltsnahe</span></td>
+        <td>Handwerker, Wartung, Reinigung, Schornsteinfeger</td>
+        <td>Haushaltsnahe Leistungen</td>
+      </tr>
+      <tr>
+        <td><span class="cat-badge cat-pruefung">Pruefung</span></td>
+        <td>(Fallback &ndash; keine Keywords matched)</td>
+        <td>Manuelle Pruefung erforderlich</td>
+      </tr>
+    </table>
+
+    <h3>Haendler-Overrides</h3>
+    <p>Bekannte Haendler werden direkt einer Kategorie zugeordnet:</p>
+    <table>
+      <tr><th>Haendler</th><th>Kategorie</th></tr>
+      <tr><td>Amazon, Amazon.de</td><td><span class="cat-badge cat-werbung">Arbeitsmittel</span></td></tr>
+      <tr><td>eBay, Kleinanzeigen</td><td><span class="cat-badge cat-werbung">Arbeitsmittel</span></td></tr>
+      <tr><td>AliExpress</td><td><span class="cat-badge cat-werbung">Arbeitsmittel</span></td></tr>
+    </table>
+
+    <h3>Pflichtanbieter-Lueckenanalyse</h3>
+    <p>Der <code>supplier_gap_report.py</code> prueft, ob alle monatlichen Rechnungen
+       von Pflichtanbietern vorhanden sind:</p>
+    <div class="tech-grid">
+      <div class="tech-item">Vodafone</div>
+      <div class="tech-item">Hetzner</div>
+      <div class="tech-item">Tibber</div>
+      <div class="tech-item">goldgas.de</div>
+      <div class="tech-item">Sipgate</div>
+      <div class="tech-item">Strato</div>
+      <div class="tech-item">AliExpress</div>
+      <div class="tech-item">AZ-Delivery</div>
+      <div class="tech-item">UseNext</div>
+    </div>
+  </div>
+</section>
+
+<!-- Tech Stack -->
+<section id="techstack">
+  <div class="container">
+    <h2>Technologie-Stack</h2>
+    <p>Alle Komponenten laufen lokal &ndash; keine Cloud-Abhaengigkeiten, keine Daten verlassen das Netzwerk.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3>KI &amp; OCR</h3>
+        <p><strong>Ollama + Qwen 2.5</strong> &ndash; Lokale LLM-Extraktion<br>
+           <strong>Tesseract OCR</strong> &ndash; Zeichenerkennung (deu+eng)<br>
+           <strong>Poppler</strong> &ndash; PDF-Verarbeitung</p>
+      </div>
+      <div class="card">
+        <h3>Dokumentenmanagement</h3>
+        <p><strong>Paperless-NGX</strong> &ndash; Langzeitarchiv<br>
+           <strong>ecoDMS</strong> &ndash; DMS-Integration (optional)<br>
+           <strong>Apache Tika</strong> &ndash; Dokumenten-Parsing</p>
+      </div>
+      <div class="card">
+        <h3>Automatisierung</h3>
+        <p><strong>Selenium + Chromium</strong> &ndash; Portal-Scraping<br>
+           <strong>Python 3.13</strong> &ndash; Pipeline-Logik<br>
+           <strong>Docker Compose</strong> &ndash; Orchestrierung</p>
+      </div>
+      <div class="card">
+        <h3>Daten &amp; Infrastruktur</h3>
+        <p><strong>PostgreSQL 16</strong> &ndash; Datenbank<br>
+           <strong>Redis 7</strong> &ndash; Cache &amp; Queue<br>
+           <strong>Gotenberg</strong> &ndash; PDF-Konvertierung<br>
+           <strong>ProtonMail Bridge</strong> &ndash; Verschluesselte E-Mail</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:30px">Technologien</h3>
+    <div class="tech-grid">
+      <div class="tech-item">Python 3.13</div>
+      <div class="tech-item">Ollama</div>
+      <div class="tech-item">Qwen 2.5</div>
+      <div class="tech-item">Tesseract OCR</div>
+      <div class="tech-item">Paperless-NGX</div>
+      <div class="tech-item">PostgreSQL 16</div>
+      <div class="tech-item">Redis 7</div>
+      <div class="tech-item">Selenium</div>
+      <div class="tech-item">Docker Compose</div>
+      <div class="tech-item">Gotenberg</div>
+      <div class="tech-item">Apache Tika</div>
+      <div class="tech-item">ProtonMail Bridge</div>
+    </div>
+  </div>
+</section>
+
+<!-- Schnellstart -->
+<section id="quickstart">
+  <div class="container">
+    <h2>Schnellstart</h2>
+
+    <h3>Voraussetzungen</h3>
+    <ul style="margin-left:20px; margin-bottom:16px;">
+      <li>Docker + Docker Compose</li>
+      <li>Ollama-Server mit <code>qwen2.5:7b-instruct</code> Modell</li>
+      <li>Optional: ecoDMS, Buhl Steuerbox-Konto</li>
+    </ul>
+
+    <h3>Installation</h3>
+    <pre><code>git clone https://github.com/icepaule/IceAI-tax-2025.git
+cd IceAI-tax-2025
+
+# Bootstrap: Verzeichnisse anlegen, Container bauen
+make bootstrap
+
+# .env mit eigenen Zugangsdaten befuellen
+cp .env.example .env
+nano .env
+
+# Stack starten
+make up</code></pre>
+
+    <h3>Taeglich nutzen</h3>
+    <pre><code># Belege einsammeln (IMAP + Portal + SMB)
+make collect
+
+# Pipeline ausfuehren (OCR + KI + Klassifizierung + Export)
+make run
+
+# Status-Dashboard oeffnen
+make status
+# -> http://localhost:8787
+
+# Pflichtanbieter-Luecken pruefen
+make supplier-gap</code></pre>
+
+    <h3>Portal-Logins (interaktiv via noVNC)</h3>
+    <pre><code># Browser starten
+make portal-up
+
+# Login-Sessions speichern (noVNC: http://localhost:7900)
+make portal-login-amazon
+make portal-login-ebay
+make portal-login-vodafone
+
+# Rechnungen herunterladen
+make portal-fetch-amazon
+make portal-fetch-ebay
+make portal-fetch-vodafone</code></pre>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p><strong>IceAI Tax 2025</strong> &ndash; Ein Projekt von
+       <a href="https://github.com/icepaule">icepaule</a></p>
+    <p style="margin-top:8px;">
+      <a href="https://github.com/icepaule/IceAI-tax-2025">GitHub Repository</a>
+    </p>
+    <p style="margin-top:12px; opacity:0.7;">
+      Erstellt mit Claude Code (Anthropic) auf einem Intel NUC mit Home Assistant.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

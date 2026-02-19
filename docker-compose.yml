@@ -1,0 +1,137 @@
+services:
+  redis:
+    image: redis:7
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PAPERLESS_DBNAME}
+      POSTGRES_USER: ${PAPERLESS_DBUSER}
+      POSTGRES_PASSWORD: ${PAPERLESS_DBPASS}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+
+  gotenberg:
+    image: gotenberg/gotenberg:8.11
+    restart: unless-stopped
+    command:
+      - gotenberg
+      - --chromium-disable-javascript=true
+
+  tika:
+    image: apache/tika:3.2.1.0
+    restart: unless-stopped
+
+  paperless:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    restart: unless-stopped
+    depends_on:
+      - db
+      - redis
+      - gotenberg
+      - tika
+    ports:
+      - "${PAPERLESS_PORT}:${PAPERLESS_PORT}"
+    env_file:
+      - .env
+    environment:
+      PAPERLESS_REDIS: redis://redis:6379
+      PAPERLESS_DBHOST: db
+      PAPERLESS_DBENGINE: postgresql
+      PAPERLESS_TIKA_ENABLED: "1"
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
+      PAPERLESS_TIKA_ENDPOINT: http://tika:9998
+      PAPERLESS_CONSUMER_POLLING: "30"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:${PAPERLESS_PORT}/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - ./data/paperless/data:/usr/src/paperless/data
+      - ./data/paperless/media:/usr/src/paperless/media
+      - ./data/paperless/export:/usr/src/paperless/export
+      - ./data/inbox:/usr/src/paperless/consume
+
+  tax-pipeline:
+    build:
+      context: .
+      dockerfile: docker/tax-pipeline.Dockerfile
+    image: tax-ai-stack/tax-pipeline:local
+    network_mode: host
+    working_dir: /app
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app
+      - ./data:/data
+      - ./config:/config
+      - /srv/taxdrop:/manual-drop
+      # Keep ecoDMS export in-repo so the importer and manifests are consistent.
+      - ./data/ecodms-export:/data/ecodms-export
+    command: ["sh", "-c", "sleep infinity"]
+    restart: unless-stopped
+
+  status-web:
+    image: python:3.13-slim
+    network_mode: host
+    working_dir: /app
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app
+      - ./data:/data
+      - /srv/taxdrop:/manual-drop:ro
+    command: ["sh", "-c", "pip install --no-cache-dir -r requirements.txt && python status_server.py"]
+    restart: unless-stopped
+
+  portal-fetcher:
+    image: python:3.13-slim
+    working_dir: /app
+    env_file:
+      - .env
+    environment:
+      SELENIUM_REMOTE_URL: http://portal-browser:4444/wd/hub
+    volumes:
+      - ./app:/app
+      - ./data/portal:/data/portal
+    depends_on:
+      - portal-browser
+    command: ["sh", "-c", "pip install --no-cache-dir -r requirements_portal.txt && sleep infinity"]
+    restart: unless-stopped
+
+  portal-browser:
+    image: selenium/standalone-chromium:latest
+    restart: unless-stopped
+    shm_size: 2gb
+    environment:
+      SE_VNC_NO_PASSWORD: "1"
+    ports:
+      - "4444:4444"
+      - "7900:7900"
+    volumes:
+      - ./data/portal:/data/portal
+
+  proton-bridge:
+    image: shenxn/protonmail-bridge:latest
+    restart: unless-stopped
+    entrypoint: ["/bin/bash", "-lc"]
+    command:
+      - |
+        set -e
+        socat TCP-LISTEN:25,fork TCP:127.0.0.1:1025 &
+        socat TCP-LISTEN:143,fork TCP:127.0.0.1:1143 &
+        rm -f /protonmail/faketty
+        mkfifo /protonmail/faketty
+        tail -f /dev/null > /protonmail/faketty &
+        cat /protonmail/faketty | protonmail-bridge --cli
+    ports:
+      - "1143:143"
+      - "1025:25"
+    volumes:
+      - ./data/proton-bridge/config:/root/.config/protonmail/bridge
+      - ./data/proton-bridge/password-store:/root/.password-store
+      - ./data/proton-bridge/gnupg:/root/.gnupg

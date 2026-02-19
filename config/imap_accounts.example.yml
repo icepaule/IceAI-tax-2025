@@ -1,0 +1,62 @@
+accounts:
+  - name: local_mailserver
+    host: mail.example.com
+    port: 993
+    use_ssl: true
+    user: user@example.com
+    password: ""
+    folder: INBOX
+    search: "SINCE 01-Jan-2025 BEFORE 01-Jan-2026"
+    max_messages: 300
+    filter_regex: "(rechnung|invoice|bestellung|bestellbest(a|ä)tigung|auftragsbest(a|ä)tigung|quittung|kassenbon|beleg|order confirmation|receipt|tax invoice|amazon|ebay|kleinanzeigen|aliexpress|az-delivery|az delivery)"
+    exclude_regex: ""
+    body_fallback_enabled: true
+    body_max_chars: 120000
+    mark_seen: false
+
+  - name: gmail_account
+    host: imap.gmail.com
+    port: 993
+    use_ssl: true
+    user: dein-name@gmail.com
+    password_env: "${IMAP_GMAIL_APP_PASSWORD}"
+    folder: INBOX
+    search: "SINCE 01-Jan-2025 BEFORE 01-Jan-2026"
+    max_messages: 300
+    filter_regex: "(rechnung|invoice|bestellung|bestellbest(a|ä)tigung|auftragsbest(a|ä)tigung|quittung|kassenbon|beleg|order confirmation|receipt|tax invoice|amazon|ebay|kleinanzeigen|aliexpress|az-delivery|az delivery)"
+    exclude_regex: ""
+    body_fallback_enabled: true
+    body_max_chars: 120000
+    mark_seen: false
+
+  - name: icloud_account
+    host: imap.mail.me.com
+    port: 993
+    use_ssl: true
+    user: dein-name@icloud.com
+    password_env: "${IMAP_ICLOUD_APP_PASSWORD}"
+    folder: INBOX
+    search: "SINCE 01-Jan-2025 BEFORE 01-Jan-2026"
+    max_messages: 300
+    filter_regex: "(rechnung|invoice|bestellung|bestellbest(a|ä)tigung|auftragsbest(a|ä)tigung|quittung|kassenbon|beleg|order confirmation|receipt|tax invoice|amazon|ebay|kleinanzeigen|aliexpress|az-delivery|az delivery)"
+    exclude_regex: ""
+    body_fallback_enabled: true
+    body_max_chars: 120000
+    mark_seen: false
+
+  # Proton Mail needs Proton Mail Bridge (local IMAP endpoint).
+  - name: proton_bridge
+    host: 127.0.0.1
+    port: 1143
+    use_ssl: false
+    use_starttls: true
+    user: dein-name@protonmail.com
+    password_env: "${IMAP_PROTON_BRIDGE_PASSWORD}"
+    folder: INBOX
+    search: "SINCE 01-Jan-2025 BEFORE 01-Jan-2026"
+    max_messages: 300
+    filter_regex: "(rechnung|invoice|bestellung|bestellbest(a|ä)tigung|auftragsbest(a|ä)tigung|quittung|kassenbon|beleg|order confirmation|receipt|tax invoice|amazon|ebay|kleinanzeigen|aliexpress|az-delivery|az delivery)"
+    exclude_regex: ""
+    body_fallback_enabled: true
+    body_max_chars: 120000
+    mark_seen: false

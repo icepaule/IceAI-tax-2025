@@ -1,0 +1,38 @@
+categories:
+  werbungskosten_arbeitsmittel:
+    keywords: ["monitor", "tastatur", "drucker", "bürostuhl", "office", "notebook", "laptop", "headset"]
+    ecodms_path: "\\Steuer\\2025\\Privat\\Werbungskosten\\Arbeitsmittel"
+    ecodms_mainfolder_oid: "1"
+    ecodms_folder_oid: "1.7.5"
+    steuer_web_hint: "Werbungskosten > Arbeitsmittel"
+  werbungskosten_fahrtkosten:
+    keywords: ["bahn", "ticket", "deutsche bahn", "fahrkarte", "sprit", "tank", "parken"]
+    ecodms_path: "\\Steuer\\2025\\Privat\\Werbungskosten\\Fahrtkosten"
+    ecodms_mainfolder_oid: "1"
+    ecodms_folder_oid: "1.7.5"
+    steuer_web_hint: "Werbungskosten > Fahrtkosten"
+  sonderausgaben_spenden:
+    keywords: ["spende", "charity", "zuwendungsbestätigung"]
+    ecodms_path: "\\Steuer\\2025\\Privat\\Sonderausgaben\\Spenden"
+    ecodms_mainfolder_oid: "1"
+    ecodms_folder_oid: "1.7.5"
+    steuer_web_hint: "Sonderausgaben > Spenden"
+  haushaltsnahe_dienstleistungen:
+    keywords: ["handwerker", "wartung", "reinigung", "schornsteinfeger", "garten"]
+    ecodms_path: "\\Steuer\\2025\\Privat\\Haushaltsnahe Leistungen"
+    ecodms_mainfolder_oid: "1"
+    ecodms_folder_oid: "1.7.5"
+    steuer_web_hint: "Haushaltsnahe Leistungen"
+  sonstiges_pruefung:
+    keywords: []
+    ecodms_path: "\\Steuer\\2025\\Privat\\Pruefung"
+    ecodms_mainfolder_oid: "1"
+    ecodms_folder_oid: "1.7.5"
+    steuer_web_hint: "Manuelle Prüfung"
+
+merchant_overrides:
+  amazon: werbungskosten_arbeitsmittel
+  amazon.de: werbungskosten_arbeitsmittel
+  ebay: werbungskosten_arbeitsmittel
+  aliexpress: werbungskosten_arbeitsmittel
+  kleinanzeigen: werbungskosten_arbeitsmittel
