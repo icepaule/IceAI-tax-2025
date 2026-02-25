@@ -23,6 +23,54 @@ categories:
     ecodms_mainfolder_oid: "1"
     ecodms_folder_oid: "1.7.5"
     steuer_web_hint: "Haushaltsnahe Leistungen"
+  werbungskosten_homeoffice:
+    keywords: ["homeoffice", "home-office", "arbeitszimmer"]
+    steuer_web_hint: "Werbungskosten > Homeoffice"
+  werbungskosten_fortbildung:
+    keywords: ["fortbildung", "weiterbildung", "seminar", "kurs", "schulung"]
+    steuer_web_hint: "Werbungskosten > Fortbildung"
+  werbungskosten_telekommunikation:
+    keywords: ["vodafone", "telekom", "telefon", "internet", "mobilfunk", "sipgate"]
+    steuer_web_hint: "Werbungskosten > Telekommunikation"
+  hausverwaltung_nebenkosten:
+    keywords: ["nebenkostenabrechnung", "nebenkosten", "betriebskosten", "hausgeld"]
+    steuer_web_hint: "Hausverwaltung > Nebenkosten"
+  hausverwaltung_miete:
+    keywords: ["mietvertrag", "miete", "kaltmiete", "warmmiete", "kaution"]
+    steuer_web_hint: "Hausverwaltung > Miete"
+  versicherungen_haftpflicht:
+    keywords: ["haftpflicht", "haftpflichtversicherung"]
+    steuer_web_hint: "Versicherungen > Haftpflicht"
+  versicherungen_hausrat:
+    keywords: ["hausrat", "hausratversicherung"]
+    steuer_web_hint: "Versicherungen > Hausrat"
+  versicherungen_kfz:
+    keywords: ["kfz", "kfz-versicherung", "autoversicherung", "teilkasko", "vollkasko"]
+    steuer_web_hint: "Versicherungen > KFZ"
+  versicherungen_leben:
+    keywords: ["lebensversicherung", "rentenversicherung", "riester", "ruerup"]
+    steuer_web_hint: "Versicherungen > Leben"
+  versicherungen_berufsunfaehigkeit:
+    keywords: ["berufsunfaehigkeit", "bu-versicherung"]
+    steuer_web_hint: "Versicherungen > Berufsunfaehigkeit"
+  gesundheit_arzt:
+    keywords: ["arzt", "arztrechnung", "zahnarzt", "krankenhaus", "praxis"]
+    steuer_web_hint: "Gesundheit > Arzt"
+  gesundheit_apotheke:
+    keywords: ["apotheke", "medikament", "rezept", "arzneimittel"]
+    steuer_web_hint: "Gesundheit > Apotheke"
+  gesundheit_krankenkasse:
+    keywords: ["krankenkasse", "krankenversicherung", "gkv", "pkv", "aok", "tk", "barmer"]
+    steuer_web_hint: "Gesundheit > Krankenkasse"
+  bank_kontoauszug:
+    keywords: ["kontoauszug", "kontoumsaetze", "girokonto"]
+    steuer_web_hint: "Bank > Kontoauszug"
+  bank_kreditkarte:
+    keywords: ["kreditkarte", "mastercard", "visa"]
+    steuer_web_hint: "Bank > Kreditkarte"
+  bank_kredit:
+    keywords: ["darlehen", "kredit", "tilgung", "zinsen"]
+    steuer_web_hint: "Bank > Kredit"
   sonstiges_pruefung:
     keywords: []
     ecodms_path: "\\Steuer\\2025\\Privat\\Pruefung"
@@ -36,3 +84,6 @@ merchant_overrides:
   ebay: werbungskosten_arbeitsmittel
   aliexpress: werbungskosten_arbeitsmittel
   kleinanzeigen: werbungskosten_arbeitsmittel
+  vodafone: werbungskosten_telekommunikation
+  telekom: werbungskosten_telekommunikation
+  sipgate: werbungskosten_telekommunikation

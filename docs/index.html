@@ -245,7 +245,7 @@
     <h1>IceAI Tax 2025</h1>
     <p>KI-gestuetzte Steuerbeleg-Pipeline fuer die private Einkommenssteuererklaerung 2025.
        Automatische Erfassung, OCR, Klassifizierung und Archivierung mit lokaler KI.</p>
-    <span class="badge">Docker + Ollama + Paperless-NGX + Steuerbox</span>
+    <span class="badge">Docker + Ollama + Paperless-NGX + paperless-ai + Steuerbox</span>
   </div>
 </header>
 
@@ -271,11 +271,11 @@
 
     <div class="stats">
       <div class="stat">
-        <div class="stat-number">10</div>
+        <div class="stat-number">13</div>
         <div class="stat-label">Docker Container</div>
       </div>
       <div class="stat">
-        <div class="stat-number">5</div>
+        <div class="stat-number">6</div>
         <div class="stat-label">Datenquellen</div>
       </div>
       <div class="stat">
@@ -340,7 +340,8 @@
       <tr><td>eBay</td><td>Selenium Portal</td><td>Kaufuebersicht scrapen. Fallback-Screenshots wenn kein PDF verfuegbar.</td></tr>
       <tr><td>Vodafone</td><td>API + Portal</td><td>MeinVodafone REST-API fuer Rechnungs-PDFs. Interaktiver Login via noVNC.</td></tr>
       <tr><td>Outlook PST</td><td>readpst</td><td>Outlook-Archive (PST/EML) parsen, steuerrelevante Anhaenge extrahieren.</td></tr>
-      <tr><td>Manuelle Ablage</td><td>SMB Share</td><td>/srv/taxdrop &ndash; fuer Handscanner, manuelle Downloads etc.</td></tr>
+      <tr><td>Manuelle Ablage</td><td>SMB Share</td><td>/srv/taxdrop &ndash; fuer manuelle Downloads etc.</td></tr>
+      <tr><td>Dokumentenscanner</td><td>Scan-to-SMB</td><td>Brother MFC-J5730DW &rarr; /srv/scanner &rarr; scan-mover &rarr; Paperless &rarr; paperless-ai (Ollama)</td></tr>
     </table>
 
     <h3>Phase 2: OCR &amp; Text-Extraktion</h3>
@@ -374,7 +375,7 @@
 <!-- Komponenten -->
 <section id="komponenten">
   <div class="container">
-    <h2>Docker-Architektur (10 Container)</h2>
+    <h2>Docker-Architektur (13 Container)</h2>
 
     <table>
       <tr><th>Service</th><th>Image</th><th>Funktion</th><th>Port</th></tr>
@@ -388,6 +389,9 @@
       <tr><td><strong>portal-fetcher</strong></td><td>python:3.13 + Selenium</td><td>Portal-Automatisierung</td><td>&ndash;</td></tr>
       <tr><td><strong>portal-browser</strong></td><td>selenium/chromium</td><td>Headless Browser + noVNC</td><td>7900</td></tr>
       <tr><td><strong>proton-bridge</strong></td><td>protonmail-bridge</td><td>ProtonMail IMAP-Bridge</td><td>1143</td></tr>
+      <tr><td><strong>scan-mover</strong></td><td>alpine:3.19</td><td>inotifywait: Scanner-SMB &rarr; Paperless Inbox</td><td>&ndash;</td></tr>
+      <tr><td><strong>paperless-ai</strong></td><td>clusterzx/paperless-ai</td><td>KI-Tagging via Ollama (Tags, Korrespondenten, Titel)</td><td>3100</td></tr>
+      <tr><td><strong>storage-path-sync</strong></td><td>tax-pipeline</td><td>Periodische Archiv-Einsortierung nach Person/Jahr</td><td>&ndash;</td></tr>
     </table>
 
     <h3>Python-Module</h3>
@@ -443,6 +447,23 @@
       </div>
     </div>
 
+    <h3>paperless-ai KI-Tagging (Port 3100)</h3>
+    <div class="screenshot">
+      <img src="assets/screenshots/05-paperless-ai-dashboard.png" alt="paperless-ai Dashboard">
+      <div class="screenshot-caption">
+        paperless-ai Dashboard: Automatische Verschlagwortung aller Dokumente via Ollama.
+        Erkennt Personen, Steuerkategorien, Korrespondenten, Dokumenttypen und Steuerjahre.
+      </div>
+    </div>
+
+    <div class="screenshot">
+      <img src="assets/screenshots/07-paperless-ai-settings.png" alt="paperless-ai Settings">
+      <div class="screenshot-caption">
+        paperless-ai Konfiguration: Ollama als lokaler AI-Provider mit Qwen 2.5.
+        Verbindung zu Paperless-NGX via API-Token.
+      </div>
+    </div>
+
     <h3>Selenium noVNC (Port 7900)</h3>
     <div class="screenshot">
       <img src="assets/screenshots/03-selenium-novnc.png" alt="Selenium noVNC Browser">
@@ -488,6 +509,36 @@
         <td>Haushaltsnahe Leistungen</td>
       </tr>
       <tr>
+        <td><span class="cat-badge cat-werbung">Homeoffice</span></td>
+        <td>Homeoffice, Arbeitszimmer</td>
+        <td>Werbungskosten &gt; Homeoffice</td>
+      </tr>
+      <tr>
+        <td><span class="cat-badge cat-werbung">Telekommunikation</span></td>
+        <td>Vodafone, Telekom, Internet, Mobilfunk</td>
+        <td>Werbungskosten &gt; Telekommunikation</td>
+      </tr>
+      <tr>
+        <td><span class="cat-badge cat-sonder">Versicherungen</span></td>
+        <td>Haftpflicht, Hausrat, KFZ, Leben, BU</td>
+        <td>Versicherungen &gt; *</td>
+      </tr>
+      <tr>
+        <td><span class="cat-badge cat-haushalt">Gesundheit</span></td>
+        <td>Arzt, Apotheke, Krankenkasse</td>
+        <td>Gesundheit &gt; *</td>
+      </tr>
+      <tr>
+        <td><span class="cat-badge cat-haushalt">Hausverwaltung</span></td>
+        <td>Nebenkosten, Miete, Hausgeld</td>
+        <td>Hausverwaltung &gt; *</td>
+      </tr>
+      <tr>
+        <td><span class="cat-badge cat-sonder">Bank</span></td>
+        <td>Kontoauszug, Kreditkarte, Kredit</td>
+        <td>Bank &gt; *</td>
+      </tr>
+      <tr>
         <td><span class="cat-badge cat-pruefung">Pruefung</span></td>
         <td>(Fallback &ndash; keine Keywords matched)</td>
         <td>Manuelle Pruefung erforderlich</td>
@@ -501,6 +552,7 @@
       <tr><td>Amazon, Amazon.de</td><td><span class="cat-badge cat-werbung">Arbeitsmittel</span></td></tr>
       <tr><td>eBay, Kleinanzeigen</td><td><span class="cat-badge cat-werbung">Arbeitsmittel</span></td></tr>
       <tr><td>AliExpress</td><td><span class="cat-badge cat-werbung">Arbeitsmittel</span></td></tr>
+      <tr><td>Vodafone, Telekom, Sipgate</td><td><span class="cat-badge cat-werbung">Telekommunikation</span></td></tr>
     </table>
 
     <h3>Pflichtanbieter-Lueckenanalyse</h3>
@@ -565,6 +617,7 @@
       <div class="tech-item">Redis 7</div>
       <div class="tech-item">Selenium</div>
       <div class="tech-item">Docker Compose</div>
+      <div class="tech-item">paperless-ai</div>
       <div class="tech-item">Gotenberg</div>
       <div class="tech-item">Apache Tika</div>
       <div class="tech-item">ProtonMail Bridge</div>
@@ -611,6 +664,20 @@ make status
 
 # Pflichtanbieter-Luecken pruefen
 make supplier-gap</code></pre>
+
+    <h3>Scanner-Pipeline (Scan-to-AI)</h3>
+    <pre><code># Scanner-Pipeline starten
+make scan-up
+
+# Tags und Storage Paths in Paperless anlegen
+make setup-tags
+
+# paperless-ai UI oeffnen
+# -> http://localhost:3100
+
+# Logs verfolgen
+make scan-logs   # scan-mover
+make ai-logs     # paperless-ai</code></pre>
 
     <h3>Portal-Logins (interaktiv via noVNC)</h3>
     <pre><code># Browser starten

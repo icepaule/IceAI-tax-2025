@@ -40,6 +40,10 @@ def _category_to_tags(category_key: str) -> List[str]:
         "werbungskosten": "Werbungskosten",
         "sonderausgaben": "Sonderausgaben",
         "haushaltsnahe": "Haushaltsnahe Leistungen",
+        "hausverwaltung": "Hausverwaltung",
+        "versicherungen": "Versicherungen",
+        "gesundheit": "Gesundheit",
+        "bank": "Bank",
     }
     group = group_map.get(group_key, group_key.title())
     tags = [f"Steuer/{group}"]

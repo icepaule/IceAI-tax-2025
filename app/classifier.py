@@ -35,8 +35,8 @@ class TaxClassifier:
         selected = categories[selected_key]
         return {
             "category": selected_key,
-            "ecodms_path": selected["ecodms_path"],
+            "ecodms_path": selected.get("ecodms_path", ""),
             "ecodms_mainfolder_oid": selected.get("ecodms_mainfolder_oid", "1"),
-            "ecodms_folder_oid": selected.get("ecodms_folder_oid", "1.7.4"),
-            "steuer_web_hint": selected["steuer_web_hint"],
+            "ecodms_folder_oid": selected.get("ecodms_folder_oid", "1.7.5"),
+            "steuer_web_hint": selected.get("steuer_web_hint", ""),
         }

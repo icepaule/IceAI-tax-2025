@@ -43,6 +43,24 @@
 - Ziel:
   - Schnell sehen, ob Pflichtquellen (z. B. Vodafone, Hetzner, Tibber, Gruengas) bereits in den verarbeiteten Belegen auftauchen.
 
+## Scanner-Pipeline (Scan-to-AI)
+- Scanner-Pipeline starten: `make scan-up`
+- Scanner-Pipeline stoppen: `make scan-down`
+- scan-mover Logs: `make scan-logs`
+- paperless-ai Logs: `make ai-logs`
+- paperless-ai UI: `http://<host>:3100`
+- Tags anlegen: `make setup-tags`
+- Storage-Path-Sync manuell: `make sync-storage-paths`
+- Storage-Path-Sync Vorschau: `make sync-storage-paths-dry`
+- Scanner SMB-Pfad: `\\<host>\scanner` (User: scanner/scanner)
+
+### Ablauf
+1. Scanner legt PDF in `/srv/scanner/` ab (Scan-to-SMB)
+2. `scan-mover` verschiebt nach `/data/inbox/` (inotifywait)
+3. Paperless-NGX konsumiert (alle 30s) und fuehrt OCR aus
+4. `paperless-ai` pollt Paperless (alle 5 Min), taggt via Ollama
+5. `storage-path-sync` sortiert in Archiv-Verzeichnisse (alle 10 Min)
+
 ## Monitoring
 - Status UI: `http://<host>:8787`
 - JSON Status: `/api/status`

@@ -79,7 +79,7 @@ von der Belegerfassung bis zur fertigen Steuererklaerung automatisiert:
 
 ## Komponenten
 
-### Docker-Services (10 Container)
+### Docker-Services (13 Container)
 
 | Service | Image | Funktion | Port |
 |---------|-------|----------|------|
@@ -93,6 +93,9 @@ von der Belegerfassung bis zur fertigen Steuererklaerung automatisiert:
 | **portal-fetcher** | python:3.13 + Selenium | Portal-Automatisierung | - |
 | **portal-browser** | selenium/chromium | Headless Browser + noVNC | 7900 |
 | **proton-bridge** | protonmail-bridge | ProtonMail IMAP-Bridge | 1143 |
+| **scan-mover** | alpine:3.19 | inotifywait: Scanner-SMB → Paperless Inbox | - |
+| **paperless-ai** | clusterzx/paperless-ai | KI-Tagging via Ollama (Tags, Korrespondenten, Titel) | 3100 |
+| **storage-path-sync** | tax-pipeline | Periodische Archiv-Einsortierung nach Person/Jahr | - |
 
 ### Python-Module
 
@@ -110,6 +113,8 @@ von der Belegerfassung bis zur fertigen Steuererklaerung automatisiert:
 | `paperless_importer.py` | Paperless-NGX API Client (Import + Tagging) |
 | `status_server.py` | HTTP-Dashboard mit Status, Review-UI und Datei-Browser |
 | `supplier_gap_report.py` | Pflichtanbieter-Lueckenanalyse |
+| `setup_paperless_tags.py` | Erstellt Steuer-Tags, Korrespondenten und Storage Paths in Paperless |
+| `paperless_storage_path_sync.py` | Sortiert KI-getaggte Dokumente in Archiv-Verzeichnisse |
 | `config.py` | Zentrale Konfiguration aus Umgebungsvariablen |
 
 ---
@@ -136,8 +141,14 @@ von der Belegerfassung bis zur fertigen Steuererklaerung automatisiert:
 - Extrahiert steuerrelevante Anhaenge aus EML-Dateien
 
 **Manuelle Ablage**:
-- SMB-Share unter `/srv/taxdrop` fuer Handscanner, manuelle Downloads etc.
+- SMB-Share unter `/srv/taxdrop` fuer manuelle Downloads etc.
 - Dateien werden automatisch in die Pipeline-Inbox uebernommen
+
+**Dokumentenscanner** (Scan-to-SMB):
+- Brother MFC-J5730DW (oder anderer Scanner mit Scan-to-SMB)
+- Scannt nach `\\<server>\scanner` (SMB-Share)
+- `scan-mover` verschiebt PDFs automatisch in Paperless Inbox
+- `paperless-ai` taggt per Ollama: Steuerkategorie, Korrespondent, Dokumenttyp, Titel, Steuerjahr
 
 ### Phase 2: OCR & Text-Extraktion
 
@@ -196,6 +207,69 @@ Zweistufig: 1) Haendler-Override, 2) Keyword-Match, 3) Fallback
 - **Steuerbox**: Per SMTP-Mail mit Anhang an Buhl Steuerbox -> WISO Steuer Import
 - **ecoDMS**: REST-API Upload mit automatischer Klassifizierung
 - **Paperless-NGX**: Langzeitarchiv mit Volltextsuche und hierarchischen Tags
+
+---
+
+## Scanner-Pipeline (Scan-to-AI)
+
+Automatischer Workflow vom physischen Dokument bis zum fertig getaggten Archiv:
+
+```
+Brother Scanner (Scan-to-SMB)
+    |
+    v
+/srv/scanner (Samba Share)
+    |  scan-mover (inotifywait)
+    v
+/data/inbox (Paperless Consumer, 30s Polling)
+    |
+    v
+Paperless-NGX (OCR via Tika/Gotenberg)
+    |  paperless-ai (alle 5 Min)
+    v
+Ollama LLM (Qwen 2.5, lokal)
+    |
+    v
+Tags, Korrespondenten, Dokumenttypen, Titel, Steuerjahr
+    |  storage-path-sync (alle 10 Min)
+    v
+Archiv/{Person}/{Jahr}/{Korrespondent}/{Titel}.pdf
+```
+
+### Scanner-Betrieb
+
+```bash
+# Scanner-Pipeline starten (scan-mover + paperless-ai + storage-path-sync)
+make scan-up
+
+# Scanner-Pipeline stoppen
+make scan-down
+
+# Logs
+make scan-logs      # scan-mover
+make ai-logs        # paperless-ai
+
+# Tags und Storage Paths in Paperless anlegen
+make setup-tags
+
+# Storage-Path-Zuordnung manuell ausfuehren
+make sync-storage-paths
+make sync-storage-paths-dry   # Vorschau
+```
+
+### Steuerkategorien (paperless-ai)
+
+Die KI ordnet Dokumente automatisch folgenden Kategorien zu:
+
+| Gruppe | Unterkategorien |
+|--------|----------------|
+| **Werbungskosten** | Arbeitsmittel, Fahrtkosten, Homeoffice, Fortbildung, Telekommunikation |
+| **Hausverwaltung** | Nebenkosten, Miete |
+| **Versicherungen** | Haftpflicht, Hausrat, KFZ, Leben, Berufsunfaehigkeit |
+| **Gesundheit** | Arzt, Apotheke, Krankenkasse |
+| **Bank** | Kontoauszug, Kreditkarte, Kredit |
+| **Sonderausgaben** | Spenden |
+| **Haushaltsnahe Leistungen** | Handwerker, Reinigung, Garten |
 
 ---
 
@@ -277,6 +351,15 @@ make migrate-ecodms      # Echter Import
 
 ![Paperless Login](docs/assets/screenshots/02-paperless-login.png)
 
+### paperless-ai KI-Tagging (Port 3100)
+- Automatische Verschlagwortung neuer Dokumente via Ollama
+- Erkennt Personen, Steuerkategorien, Korrespondenten und Dokumenttypen
+- Vergibt Steuerjahr-Tags basierend auf Belegdatum
+- Scan-Intervall: alle 5 Minuten
+
+![paperless-ai Dashboard](docs/assets/screenshots/05-paperless-ai-dashboard.png)
+![paperless-ai Settings](docs/assets/screenshots/07-paperless-ai-settings.png)
+
 ### Selenium noVNC (Port 7900)
 - Interaktiver Browser fuer Portal-Logins
 - 2FA/Captcha-Eingabe bei Amazon, eBay, Vodafone
@@ -346,6 +429,8 @@ IceAI-tax-2025/
 │   ├── ecodms_offline_importer.py# ecoDMS Backup-Migration
 │   ├── status_server.py          # Web-Dashboard
 │   ├── supplier_gap_report.py    # Lueckenanalyse
+│   ├── setup_paperless_tags.py   # Tag-/Storage-Path-Setup
+│   ├── paperless_storage_path_sync.py # Archiv-Einsortierung
 │   ├── config.py                 # Konfiguration
 │   ├── requirements.txt          # Python-Abhaengigkeiten
 │   └── requirements_portal.txt   # Portal-Abhaengigkeiten

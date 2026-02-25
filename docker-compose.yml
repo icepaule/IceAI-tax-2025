@@ -115,6 +115,73 @@ services:
     volumes:
       - ./data/portal:/data/portal
 
+  storage-path-sync:
+    build:
+      context: .
+      dockerfile: docker/tax-pipeline.Dockerfile
+    image: tax-ai-stack/tax-pipeline:local
+    network_mode: host
+    working_dir: /app
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app
+      - ./config:/config
+    command: >
+      sh -c '
+        echo "[storage-path-sync] Starting -- runs every 10 minutes" &&
+        while true; do
+          sleep 600 &&
+          echo "[storage-path-sync] Running sync at $$(date)" &&
+          python paperless_storage_path_sync.py 2>&1 &&
+          echo "[storage-path-sync] Done"
+        done
+      '
+    restart: unless-stopped
+    depends_on:
+      paperless:
+        condition: service_healthy
+
+  scan-mover:
+    image: alpine:3.19
+    restart: unless-stopped
+    volumes:
+      - /srv/scanner:/scan-inbox
+      - ./data/inbox:/paperless-consume
+    command: >
+      sh -c '
+        apk add --no-cache inotify-tools &&
+        echo "[scan-mover] Watching /scan-inbox for new files..." &&
+        inotifywait -m -e close_write -e moved_to --format "%f" /scan-inbox |
+        while read FILE; do
+          case "$$FILE" in
+            *.pdf|*.PDF|*.jpg|*.JPG|*.jpeg|*.JPEG|*.png|*.PNG|*.tif|*.TIF|*.tiff|*.TIFF)
+              sleep 2 &&
+              echo "[scan-mover] Moving $$FILE to Paperless inbox" &&
+              mv "/scan-inbox/$$FILE" "/paperless-consume/$$FILE"
+              ;;
+          esac
+        done
+      '
+
+  paperless-ai:
+    image: clusterzx/paperless-ai
+    container_name: paperless-ai
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - PAPERLESS_AI_PORT=3100
+      - RAG_SERVICE_URL=http://localhost:8000
+      - RAG_SERVICE_ENABLED=true
+    ports: []
+    volumes:
+      - paperless-ai_data:/app/data
+    depends_on:
+      paperless:
+        condition: service_healthy
+
   proton-bridge:
     image: shenxn/protonmail-bridge:latest
     restart: unless-stopped
@@ -127,7 +194,7 @@ services:
         rm -f /protonmail/faketty
         mkfifo /protonmail/faketty
         tail -f /dev/null > /protonmail/faketty &
-        cat /protonmail/faketty | protonmail-bridge --cli
+        cat /protonmail/faketty | /usr/lib/protonmail/bridge/bridge --cli
     ports:
       - "1143:143"
       - "1025:25"
@@ -135,3 +202,6 @@ services:
       - ./data/proton-bridge/config:/root/.config/protonmail/bridge
       - ./data/proton-bridge/password-store:/root/.password-store
       - ./data/proton-bridge/gnupg:/root/.gnupg
+
+volumes:
+  paperless-ai_data:

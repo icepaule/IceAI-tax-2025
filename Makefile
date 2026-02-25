@@ -112,6 +112,30 @@ supplier-gap-current:
 supplier-gap-year:
 	docker compose run --rm tax-pipeline python supplier_gap_report.py --tax-year $(YEAR)
 
+scan-up:
+	docker compose up -d scan-mover paperless-ai storage-path-sync
+
+scan-down:
+	docker compose stop scan-mover paperless-ai storage-path-sync
+
+scan-logs:
+	docker compose logs -f --tail=100 scan-mover
+
+ai-logs:
+	docker compose logs -f --tail=100 paperless-ai
+
+ai-ui:
+	@echo "paperless-ai UI: http://localhost:3100"
+
+setup-tags:
+	docker compose run --rm tax-pipeline python setup_paperless_tags.py
+
+sync-storage-paths:
+	docker compose run --rm tax-pipeline python paperless_storage_path_sync.py
+
+sync-storage-paths-dry:
+	docker compose run --rm tax-pipeline python paperless_storage_path_sync.py --dry-run
+
 # Ingest manually downloaded PDFs (e.g. goldgas/sipgate/strato portals) placed into /srv/taxdrop.
 # This avoids IMAP/portal collection and only processes the staged files.
 ingest-drop-year:
